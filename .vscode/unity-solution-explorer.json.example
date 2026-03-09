@@ -1,0 +1,6 @@
+{
+  "excludeProjects": [
+    "Assembly-CSharp.FirstPass",
+    "Assembly-CSharp-Editor.FirstPass"
+  ]
+}

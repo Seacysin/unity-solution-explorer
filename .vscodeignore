@@ -1,0 +1,14 @@
+.vscode/**
+.vscode-test/**
+src/**
+tsconfig.json
+**/*.map
+**/*.ts
+node_modules/**
+scripts/**
+.gitignore
+*.vsix
+*.vsix.bak
+temp_pkg.zip
+vsix_extract/**
+Untitled

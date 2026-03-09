@@ -1,0 +1,12 @@
+node_modules/
+out/
+*.vsix
+*.vsix.bak
+.vscode-test/
+vsix_extract/
+temp_pkg.zip
+Untitled
+.DS_Store
+*.log
+.env
+.env.local
