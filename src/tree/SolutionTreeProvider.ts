@@ -2,9 +2,9 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { parseSln } from '../parser/slnParser';
 import { parseCsproj } from '../parser/csprojParser';
-import { getExcludeProjects, getMergedSupportedExtensions } from '../config';
+import { getExcludeProjects, getExtraSolutionFolders, getMergedSupportedExtensions } from '../config';
 import { PendingStore } from '../pendingStore';
-import { SolutionTreeItem, buildFolderTree } from './treeNodes';
+import { SolutionTreeItem, buildFolderTree, buildFolderTreeFromDisk } from './treeNodes';
 import * as fs from 'fs';
 
 const EXPANDED_PROJECTS_KEY = 'unitySolutionExplorer.expandedProjects';
@@ -223,6 +223,8 @@ export class SolutionTreeProvider implements vscode.TreeDataProvider<SolutionTre
     this.filePathToItem.clear();
 
     for (const folder of workspaceFolders) {
+      const extraFolderRels = getExtraSolutionFolders(folder.uri.fsPath);
+      const extraFolderNodes = this.buildExtraSolutionFolderNodes(folder.uri.fsPath, extraFolderRels);
       const slnFiles = await vscode.workspace.findFiles(
         new vscode.RelativePattern(folder, '**/*.sln'),
         null,
@@ -240,14 +242,16 @@ export class SolutionTreeProvider implements vscode.TreeDataProvider<SolutionTre
             excludeSet.size > 0 ? projects.filter((p) => !excludeSet.has(p.name)) : projects;
           const solutionName = path.basename(slnPath, '.sln');
           const projectNodes = await this.loadProjectNodes(filtered);
+          const rootChildren = [...projectNodes, ...extraFolderNodes];
           const solutionItem = new SolutionTreeItem(
             solutionName,
             'solution',
             slnPath,
-            projectNodes,
+            rootChildren,
             vscode.TreeItemCollapsibleState.Expanded
           );
-          this.setParents(projectNodes, solutionItem);
+          this.setParents(rootChildren, solutionItem);
+          this.registerFileItems(extraFolderNodes);
           roots.push(solutionItem);
         } catch (e) {
           roots.push(
@@ -275,6 +279,36 @@ export class SolutionTreeProvider implements vscode.TreeDataProvider<SolutionTre
       ];
     }
     return roots;
+  }
+
+  private buildExtraSolutionFolderNodes(
+    workspaceRoot: string,
+    folderRels: string[]
+  ): SolutionTreeItem[] {
+    const nodes: SolutionTreeItem[] = [];
+    for (const rel of folderRels) {
+      const fullPath = path.join(workspaceRoot, rel);
+      let stat: fs.Stats;
+      try {
+        if (!fs.existsSync(fullPath)) continue;
+        stat = fs.statSync(fullPath);
+      } catch {
+        continue;
+      }
+      if (!stat.isDirectory()) continue;
+      const children = buildFolderTreeFromDisk(fullPath);
+      const label = path.basename(fullPath);
+      nodes.push(
+        new SolutionTreeItem(
+          label,
+          'folder',
+          fullPath,
+          children,
+          vscode.TreeItemCollapsibleState.Collapsed
+        )
+      );
+    }
+    return nodes.sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }));
   }
 
   private async loadProjectNodes(

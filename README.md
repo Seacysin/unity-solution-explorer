@@ -32,6 +32,7 @@ Browse Unity .sln and .csproj in the sidebar (Cursor / VS Code). Shows solution 
   - **与 Unity 的关系**：移动后磁盘路径已变，`.csproj` 条目仍依赖 Unity 重新生成；插件通过 Pending 缓存与既有逻辑保持树与蓝本暂时不一致时的展示。
 - **排除项目**：通过 `.vscode/unity-solution-explorer.json` 或设置中的 `excludeProjects` 排除不需显示的程序集。
 - **额外文件类型（1.1.3+）**：同上 JSON 或设置中的 `additionalFileExtensions`，与默认扩展名合并；仅当对应路径出现在 csproj 的 Compile/None/Content 中时才会出现在树中。
+- **项目级额外目录（1.1.3+）**：可在项目 `.vscode/settings.json` 配置 `unitySolutionExplorer.extraSolutionFolders`（如 `.cursor`、`.claude`），在每个解决方案根下与项目节点并列展示其目录树；若该文件不存在则忽略。**1.1.4+** 对多工作区与 JSONC（注释/尾逗号）读取更稳定。
 
 
 ## 工作区配置（.vscode/unity-solution-explorer.json）
@@ -64,6 +65,16 @@ Browse Unity .sln and .csproj in the sidebar (Cursor / VS Code). Shows solution 
 ```
 
 扩展名可写为 `".dll"` 或 `"dll"`（会自动规范为小写并带点）。修改 JSON 后使用侧边栏标题栏 **刷新解决方案**；若改的是 VS Code/Cursor **设置** 中的同名项，树会在保存设置后自动刷新。
+
+**项目级额外目录示例（读取项目 .vscode/settings.json）：**
+
+```json
+{
+  "unitySolutionExplorer.extraSolutionFolders": [".cursor", ".claude", "Tools/Rules"]
+}
+```
+
+`unitySolutionExplorer.extraSolutionFolders` 仅支持相对项目根路径；会自动去重并过滤越界路径（如 `..`）。读取来源仅为项目 `.vscode/settings.json`，不会额外依赖 `.vscode/unity-solution-explorer.json`。
 
 ## 新建文件
 

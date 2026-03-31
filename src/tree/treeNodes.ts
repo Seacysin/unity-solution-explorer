@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
+import * as fs from 'fs';
 
 export type TreeNodeType = 'solution' | 'project' | 'folder' | 'file';
 
@@ -44,6 +45,15 @@ interface FolderNode {
   fullPath: string;
   children: Map<string, FolderNode>;
   files: string[];
+}
+
+function sortItems(items: SolutionTreeItem[]): SolutionTreeItem[] {
+  return items.sort((a, b) => {
+    const aIsDir = a.type === 'folder';
+    const bIsDir = b.type === 'folder';
+    if (aIsDir !== bIsDir) return aIsDir ? -1 : 1;
+    return a.label.localeCompare(b.label, undefined, { sensitivity: 'base' });
+  });
 }
 
 /** 在已有 FolderNode 树中确保某相对路径存在（用于合并 Pending 文件夹） */
@@ -127,12 +137,7 @@ export function buildFolderTree(
     const items: SolutionTreeItem[] = [];
     for (const [, child] of node.children) {
       const childItems = nodeToItems(child, csprojPath);
-      childItems.sort((a, b) => {
-        const aIsDir = a.type === 'folder';
-        const bIsDir = b.type === 'folder';
-        if (aIsDir !== bIsDir) return aIsDir ? -1 : 1;
-        return a.label.localeCompare(b.label, undefined, { sensitivity: 'base' });
-      });
+      sortItems(childItems);
       items.push(
         new SolutionTreeItem(
           child.name,
@@ -156,13 +161,61 @@ export function buildFolderTree(
         )
       );
     }
-    return items.sort((a, b) => {
-      const aIsDir = a.type === 'folder';
-      const bIsDir = b.type === 'folder';
-      if (aIsDir !== bIsDir) return aIsDir ? -1 : 1;
-      return a.label.localeCompare(b.label, undefined, { sensitivity: 'base' });
-    });
+    return sortItems(items);
   }
 
   return nodeToItems(root, projectCsprojPath);
+}
+
+/** 递归读取磁盘目录，构建对应的树节点（目录在前，名称排序）。 */
+export function buildFolderTreeFromDisk(baseDir: string): SolutionTreeItem[] {
+  if (!fs.existsSync(baseDir)) return [];
+  let stat: fs.Stats;
+  try {
+    stat = fs.statSync(baseDir);
+  } catch {
+    return [];
+  }
+  if (!stat.isDirectory()) return [];
+
+  const walkDir = (dir: string): SolutionTreeItem[] => {
+    let entries: fs.Dirent[] = [];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return [];
+    }
+
+    const items: SolutionTreeItem[] = [];
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        const children = walkDir(fullPath);
+        items.push(
+          new SolutionTreeItem(
+            entry.name,
+            'folder',
+            fullPath,
+            children,
+            vscode.TreeItemCollapsibleState.Collapsed
+          )
+        );
+        continue;
+      }
+      if (entry.isFile()) {
+        items.push(
+          new SolutionTreeItem(
+            entry.name,
+            'file',
+            fullPath,
+            undefined,
+            vscode.TreeItemCollapsibleState.None
+          )
+        );
+      }
+    }
+    return sortItems(items);
+  };
+
+  return walkDir(baseDir);
 }
