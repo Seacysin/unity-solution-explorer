@@ -1,9 +1,16 @@
 # 更新日志
 
+## 1.1.4
+
+- **修复项目级额外目录读取**：`unitySolutionExplorer.extraSolutionFolders` 现优先按当前工作区目录作用域读取；多根工作区下可正确匹配对应项目配置
+- **增强 settings.json 兼容性**：对 `.vscode/settings.json` 读取增加 JSONC 容错（注释、尾逗号）并保留兜底路径，避免配置存在但未生效
+- **目录展示稳定性优化**：当额外目录配置可解析时，解决方案根下会稳定追加对应目录树节点，不影响原有 csproj 蓝本合并逻辑
+
 ## 1.1.3
 
 - **可配置额外文件类型**：在 `.vscode/unity-solution-explorer.json` 中增加 `additionalFileExtensions`（如 `[".dll", ".asmdef"]`），或在设置中配置 `unitySolutionExplorer.additionalFileExtensions`；与内置类型（.cs / .shader / .xml / .txt / .json）合并后，用于过滤 `.csproj` 中 Compile / None / Content 的 `Include`，刷新树后即可展示对应扩展名的条目
 - **设置变更自动刷新**：修改 Unity Solution Explorer 相关工作区/用户设置后自动刷新树，无需手动点刷新（仍支持标题栏「刷新解决方案」）
+- **项目级额外目录展示**：通过项目 `.vscode/settings.json` 中的 `unitySolutionExplorer.extraSolutionFolders`（如 `[".cursor", ".claude"]`）展示解决方案根额外目录树；若文件不存在则忽略
 
 ## 1.1.2
 

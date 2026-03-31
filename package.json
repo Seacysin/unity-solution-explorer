@@ -2,7 +2,7 @@
   "name": "unity-solution-explorer",
   "displayName": "Unity Solution Explorer",
   "description": "Browse Unity .sln/.csproj in the sidebar; ignores non-Unity editor files; drag-drop move within assembly, open in editor/Chat; supports .cs/.shader/.xml and right-click add/rename/delete. 在侧边栏按 .sln/.csproj 展示 Unity 解决方案与程序集结构，支持树内拖拽移动（确认后）、拖入编辑器/聊天、多选拖拽，以及 .cs/.shader/.xml/.txt/.json、右键新建/重命名/删除、排除项目配置",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "publisher": "Seacysin",
   "engines": {
     "vscode": "^1.74.0"
@@ -159,6 +159,14 @@
           },
           "default": [],
           "description": "除内置 (.cs/.shader/.xml/.txt/.json) 外，树中要展示的额外扩展名，如 [\".dll\"]。可与工作区 .vscode/unity-solution-explorer.json 中的 additionalFileExtensions 合并"
+        },
+        "unitySolutionExplorer.extraSolutionFolders": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "在解决方案根额外展示的目录（相对工作区根），如 [\".cursor\", \".claude\"]。推荐写在项目 .vscode/settings.json"
         }
       }
     }
