@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { parseSln } from '../parser/slnParser';
 import { parseCsproj } from '../parser/csprojParser';
-import { getExcludeProjects } from '../config';
+import { getExcludeProjects, getMergedSupportedExtensions } from '../config';
 import { PendingStore } from '../pendingStore';
 import { SolutionTreeItem, buildFolderTree } from './treeNodes';
 import * as fs from 'fs';
@@ -297,7 +297,7 @@ export class SolutionTreeProvider implements vscode.TreeDataProvider<SolutionTre
           continue;
         }
         const content = fs.readFileSync(proj.absolutePath, 'utf-8');
-        const info = parseCsproj(proj.absolutePath, content);
+        const info = parseCsproj(proj.absolutePath, content, getMergedSupportedExtensions());
         const projectDir = path.dirname(proj.absolutePath);
         const csprojKey = this.pathKey(proj.absolutePath);
         const isAssemblyCSharp = path.basename(proj.absolutePath) === 'Assembly-CSharp.csproj';
@@ -342,7 +342,7 @@ export class SolutionTreeProvider implements vscode.TreeDataProvider<SolutionTre
         return [];
       }
       const content = fs.readFileSync(csprojPath, 'utf-8');
-      const info = parseCsproj(csprojPath, content);
+      const info = parseCsproj(csprojPath, content, getMergedSupportedExtensions());
       const blueprintFiles = info.compileItems.map((c) => c.include);
       const blueprintRels = new Set(
         blueprintFiles.map((f) => path.relative(projectDir, f)).filter((r) => !r.startsWith('..'))

@@ -27,16 +27,21 @@ function parseItemGroup(content: string, tagName: string): { include: string; li
   return items;
 }
 
-function isSupportedPath(filePath: string): boolean {
+function isSupportedPath(filePath: string, supportedExtensions: readonly string[]): boolean {
   const ext = path.extname(filePath).toLowerCase();
-  return SUPPORTED_EXTENSIONS.includes(ext);
+  return supportedExtensions.includes(ext);
 }
 
 /**
  * 解析 .csproj 文件（支持 Unity 生成的 MSBuild 格式）。
- * 提取 AssemblyName、RootNamespace，以及 Compile / None / Content 中的支持文件（.cs .shader .xml .txt .json）。
+ * 提取 AssemblyName、RootNamespace，以及 Compile / None / Content 中的支持文件。
+ * supportedExtensions 默认含 .cs/.shader/.xml/.txt/.json，可通过配置合并额外扩展名。
  */
-export function parseCsproj(projectPath: string, content: string): CsprojInfo {
+export function parseCsproj(
+  projectPath: string,
+  content: string,
+  supportedExtensions: readonly string[] = SUPPORTED_EXTENSIONS
+): CsprojInfo {
   const projectDir = path.dirname(projectPath);
   const compileItems = parseItemGroup(content, 'Compile');
   const noneItems = parseItemGroup(content, 'None');
@@ -44,7 +49,7 @@ export function parseCsproj(projectPath: string, content: string): CsprojInfo {
 
   const allIncludes = [...compileItems, ...noneItems, ...contentItems]
     .map((item) => path.resolve(projectDir, item.include))
-    .filter((p) => isSupportedPath(p));
+    .filter((p) => isSupportedPath(p, supportedExtensions));
 
   let assemblyName = path.basename(projectPath, '.csproj');
   let rootNamespace = assemblyName;

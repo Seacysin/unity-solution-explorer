@@ -1,5 +1,19 @@
 # 更新日志
 
+## 1.1.3
+
+- **可配置额外文件类型**：在 `.vscode/unity-solution-explorer.json` 中增加 `additionalFileExtensions`（如 `[".dll", ".asmdef"]`），或在设置中配置 `unitySolutionExplorer.additionalFileExtensions`；与内置类型（.cs / .shader / .xml / .txt / .json）合并后，用于过滤 `.csproj` 中 Compile / None / Content 的 `Include`，刷新树后即可展示对应扩展名的条目
+- **设置变更自动刷新**：修改 Unity Solution Explorer 相关工作区/用户设置后自动刷新树，无需手动点刷新（仍支持标题栏「刷新解决方案」）
+
+## 1.1.2
+
+- **树视图拖拽**：在 Unity Solution Explorer 中可将文件或文件夹拖到同一程序集（同一 `.csproj`）下的其他文件夹或项目根；拖到文件节点时表示放入该文件所在目录
+- **拖出到工作台**：支持将树中的文件/文件夹拖到聊天输入区、编辑器等（`text/uri-list` / `application/vnd.code.uri-list`），与内置资源管理器行为对齐；避免错误声明 `dragMimeTypes` 导致无法拖入编辑器的问题
+- **从资源管理器拖入**：可将已打开工作区内、且位于当前目标程序集目录下的文件/文件夹拖入树中节点以完成移动（同样仅限同一程序集范围）
+- **移动前确认**：实际会发生路径变更时弹出模态对话框，列出待移动项（文件夹名带 `/` 提示），确认「移动」后执行；取消则不改动磁盘
+- **多选**：树支持多选后一次性拖拽多个项（移动或拖出到 Chat）
+- **限制说明**：不支持跨程序集（跨 `.csproj`）拖拽移动；移动后 `.csproj` 蓝本仍依赖 Unity 重新生成，与既有 Pending 缓存逻辑一致
+
 ## 1.1.1
 
 - **优化插件与展示**：新增扩展图标与详情页功能截图；描述与 README 增加英文说明，便于更多用户了解用途
